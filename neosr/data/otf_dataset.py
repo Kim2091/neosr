@@ -108,20 +108,27 @@ class otf(data.Dataset):
         while retry > 0:
             try:
                 img_bytes = self.file_client.get(gt_path, 'gt')
-            except (IOError, OSError) as e:
+                if img_bytes is None:
+                    raise ValueError(f'No data returned from file: {gt_path}')
+                img_gt = imfrombytes(img_bytes, float32=True)
+            except Exception as e:  # catch all exceptions
                 logger = get_root_logger()
                 logger.warn(
                     f'File client error: {e}, remaining retry times: {retry - 1}')
+                print(f'Error reading file: {gt_path}')  # print the path of the problematic image
+                print(f'Error message: {e}')  # print the error message
                 # change another file to read
-                index = random.randint(0, self.__len__())
-                gt_path = self.paths[index]
+                if self.__len__() > 1:
+                    index = random.randint(0, self.__len__() - 1)
+                    gt_path = self.paths[index]
+                else:
+                    raise ValueError('Not enough paths in self.paths')
                 time.sleep(1)  # sleep 1s for occasional server congestion
+                retry -= 1
             else:
                 break
             finally:
                 retry -= 1
-        img_gt = imfrombytes(img_bytes, float32=True)
-
         # -------------------- Do augmentation for training: flip, rotation -------------------- #
         img_gt = basic_augment(img_gt, self.opt['use_hflip'], self.opt['use_rot'])
 
