@@ -157,9 +157,13 @@ class Conv3XC(nn.Module):
         self.eval_conv.bias.data = self.bias_concat
 
     def forward(self, x):
-        pad = 1
-        x_pad = F.pad(x, (pad, pad, pad, pad), "constant", 0)
-        out = self.conv(x_pad) + self.sk(x)
+        if self.training:
+            pad = 1
+            x_pad = F.pad(x, (pad, pad, pad, pad), "constant", 0)
+            out = self.conv(x_pad) + self.sk(x)
+        else:
+            self.update_params()
+            out = self.eval_conv(x)
 
         if self.has_relu:
             out = F.leaky_relu(out, negative_slope=0.05)
