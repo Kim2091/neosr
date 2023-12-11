@@ -2,6 +2,8 @@
 
 **neosr** is a framework for training real-world single-image super-resolution networks.
 
+This is a personal fork for messing about with various additions + testing. Don't use this fork regularly.
+
 ## installation
 
 Requires Python 3.11 and CUDA =>11.8
